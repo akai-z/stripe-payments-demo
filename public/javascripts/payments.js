@@ -366,13 +366,15 @@
       confirmationElement.querySelector('.error-message').innerText =
         error.message;
       mainElement.classList.add('error');
-    } else if (paymentIntent.status === 'succeeded') {
+    } else if (paymentIntent.status === 'succeeded'
+      || paymentIntent.status === 'requires_capture') {
       // Success! Payment is confirmed. Update the interface to display the confirmation screen.
       mainElement.classList.remove('processing');
       mainElement.classList.remove('receiver');
       // Update the note about receipt and shipping (the payment has been fully confirmed by the bank).
       confirmationElement.querySelector('.note').innerText =
-        'We just sent your receipt to your email address, and your items will be on their way shortly.';
+        'We just sent your receipt to your email address, and your items will be on their way shortly.'
+        + ` [Status = ${paymentIntent.status}]`;
       mainElement.classList.add('success');
     } else if (paymentIntent.status === 'processing') {
       // Success! Now waiting for payment confirmation. Update the interface to display the confirmation screen.
