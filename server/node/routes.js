@@ -114,24 +114,22 @@ router.post('/webhook', async (req, res) => {
   // Monitor payment_intent.succeeded & payment_intent.payment_failed events.
   if (object.object === 'payment_intent') {
     const paymentIntent = object;
-    if (eventType === 'payment_intent.succeeded') {
-      if (paymentIntent.status === 'requires_capture') {
-        const intentCapture = await stripe.paymentIntents.capture(paymentIntent.id);
+    if (paymentIntent.status === 'requires_capture') {
+      const intentCapture = await stripe.paymentIntents.capture(paymentIntent.id);
 
-        if (intentCapture.status === 'succeeded') {
-          console.log(
-            `🔔  Webhook received! Payment for PaymentIntent ${paymentIntent.id} was captured.`
-          );
-        } else {
-          console.log(
-            `🔔  Webhook received! Payment for PaymentIntent ${paymentIntent.id} could not be captured.`
-          );
-        }
+      if (intentCapture.status === 'succeeded') {
+        console.log(
+          `🔔  Webhook received! Payment for PaymentIntent ${paymentIntent.id} was captured.`
+        );
       } else {
         console.log(
-          `🔔  Webhook received! Payment for PaymentIntent ${paymentIntent.id} succeeded.`
+          `🔔  Webhook received! Payment for PaymentIntent ${paymentIntent.id} could not be captured.`
         );
       }
+    } else if (eventType === 'payment_intent.succeeded') {
+      console.log(
+        `🔔  Webhook received! Payment for PaymentIntent ${paymentIntent.id} succeeded.`
+      );
     } else if (eventType === 'payment_intent.payment_failed') {
       const paymentSourceOrMethod = paymentIntent.last_payment_error
         .payment_method
