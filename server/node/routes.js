@@ -57,6 +57,7 @@ router.post('/payment_intents', async (req, res, next) => {
       amount,
       currency,
       payment_method_types: config.paymentMethods,
+      capture_method: 'manual',
     });
     return res.status(200).json({paymentIntent});
   } catch (err) {
@@ -114,9 +115,23 @@ router.post('/webhook', async (req, res) => {
   if (object.object === 'payment_intent') {
     const paymentIntent = object;
     if (eventType === 'payment_intent.succeeded') {
-      console.log(
-        `🔔  Webhook received! Payment for PaymentIntent ${paymentIntent.id} succeeded.`
-      );
+      if (paymentIntent.status === 'requires_capture') {
+        const intentCapture = await stripe.paymentIntents.capture(paymentIntent.id);
+
+        if (intentCapture.status === 'succeeded') {
+          console.log(
+            `🔔  Webhook received! Payment for PaymentIntent ${paymentIntent.id} was captured.`
+          );
+        } else {
+          console.log(
+            `🔔  Webhook received! Payment for PaymentIntent ${paymentIntent.id} could not be captured.`
+          );
+        }
+      } else {
+        console.log(
+          `🔔  Webhook received! Payment for PaymentIntent ${paymentIntent.id} succeeded.`
+        );
+      }
     } else if (eventType === 'payment_intent.payment_failed') {
       const paymentSourceOrMethod = paymentIntent.last_payment_error
         .payment_method
